@@ -7,12 +7,17 @@ public class playerMovement : MonoBehaviour {
 
 	private Rigidbody myRigid;
 	private Transform myTrans;
+
+	public Transform playerModel;
 	
 	private bool grounded;
 	private float g;
 
 	[SerializeField]
 	private float moveAccel, maxSpeed;
+
+	private Vector2 playerInput;
+	private float movementAngle;
 
 	// Use this for initialization
 	void Start () {
@@ -30,20 +35,38 @@ public class playerMovement : MonoBehaviour {
 		Rotate();
 	}
 
+	void input(float angle) {
+		float vY = -Mathf.Cos(angle/360) * Input.GetAxis("Vertical");
+		float vX = -Mathf.Sin(angle/360) * Input.GetAxis("Vertical");
+
+		float hY = Mathf.Sin(angle/360) * Input.GetAxis("Horizontal");
+		float hX = -Mathf.Cos(angle/360) * Input.GetAxis("Horizontal");
+
+		playerInput.y = vY + hY;
+		playerInput.x = vX + hX;
+
+	}
+
     void Rotate() {
         //make player model rotate towards direction of travel
+		if(myRigid.velocity.sqrMagnitude > 0.5){
+			movementAngle = Mathf.Atan2(myRigid.velocity.x,myRigid.velocity.z);
+			playerModel.localRotation = Quaternion.Euler(0,movementAngle * Mathf.Rad2Deg,0); //-----------MAKE THIS A SMOOTH TURN-------------
+			print("angle: "+ movementAngle * Mathf.Rad2Deg);	
+		}
+		
     }
 
     void Move() {
-		float xMove = Input.GetAxis("Horizontal")*moveAccel;
-		float zMove = Input.GetAxis("Vertical")*moveAccel;
+		float xMove = playerInput.x*moveAccel;
+		float zMove = playerInput.y*moveAccel;
 		myRigid.AddRelativeForce(xMove,0,zMove,ForceMode.Acceleration);
 
 		//stops the player if travelling slower than
-		if(Input.GetAxis("Horizontal") == 0 && Mathf.Abs(myRigid.velocity.x) < 1 && Mathf.Abs(myRigid.velocity.x) > 0){
+		if(playerInput.x == 0 && Mathf.Abs(myRigid.velocity.x) < 1 && Mathf.Abs(myRigid.velocity.x) > 0){
 			myRigid.AddRelativeForce(-myRigid.velocity.x,0,0,ForceMode.Impulse);
 		}
-		if(Input.GetAxis("Vertical") == 0 && Mathf.Abs(myRigid.velocity.z) < 1 && Mathf.Abs(myRigid.velocity.z) > 0){
+		if(playerInput.y == 0 && Mathf.Abs(myRigid.velocity.z) < 1 && Mathf.Abs(myRigid.velocity.z) > 0){
 			myRigid.AddRelativeForce(0,0,-myRigid.velocity.z,ForceMode.Impulse);
 		}
 	}
