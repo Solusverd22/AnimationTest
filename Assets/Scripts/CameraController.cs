@@ -12,7 +12,7 @@ public class CameraController : MonoBehaviour {
 	[Range(0,100)]
 	private float mouseSensitivity = 10;
 	private float Smoothing = 0.1f;
-	public Vector2 targetAngle;
+	private Vector2 targetAngle;
 	private Vector3 cv;
 
 	// Use this for initialization
@@ -42,10 +42,10 @@ public class CameraController : MonoBehaviour {
 		float posZ = 3 * Mathf.Cos(targetAngle.x/360);
 
 		//SMOOTH DAMP IS THE BEST WOOOOOO!!!
-		myTrans.localPosition = Vector3.SmoothDamp(myTrans.localPosition,new Vector3(posX,myTrans.localPosition.y,posZ),ref cv,Smoothing);
+		myTrans.localPosition = Vector3.SmoothDamp(myTrans.localPosition,new Vector3(posX,targetAngle.y,posZ),ref cv,Smoothing);
     }
 
 	private void yMovement() {
-        targetAngle.y += Input.GetAxis("Mouse Y") * mouseSensitivity;
+        targetAngle.y += Input.GetAxis("Mouse Y") * mouseSensitivity/100;
     }
 }

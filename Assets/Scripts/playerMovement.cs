@@ -16,6 +16,9 @@ public class playerMovement : MonoBehaviour {
 	[SerializeField]
 	private float moveAccel, maxSpeed;
 
+	[SerializeField]
+	Animator animator;
+
 	private Vector2 playerInput;
 	private float movementAngle;
 
@@ -33,6 +36,7 @@ public class playerMovement : MonoBehaviour {
 		Jump(6.5f);
 		Gravity();
 		Rotate();
+		animator.SetFloat("speed",myRigid.velocity.sqrMagnitude);
 	}
 
 	void input(float angle) {
