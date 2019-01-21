@@ -11,6 +11,7 @@ public class CameraController : MonoBehaviour {
 	[SerializeField]
 	[Range(0,100)]
 	private float mouseSensitivity = 10;
+	private float cameraDistance = 4;
 	private float Smoothing = 0.1f;
 	public Vector2 targetAngle;
 	private Vector3 cv;
@@ -21,6 +22,7 @@ public class CameraController : MonoBehaviour {
 		playerTrans = transform.parent;
 		myTrans = GetComponent<Transform>();
 		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
 	}
 	
 	// Update is called once per frame
@@ -32,20 +34,28 @@ public class CameraController : MonoBehaviour {
 
 		playerTrans.gameObject.SendMessage("input",targetAngle.x);
 
-		if (Input.GetKeyDown(KeyCode.Escape)) Cursor.lockState = CursorLockMode.None;
-		if (Input.GetMouseButtonDown(0)) Cursor.lockState = CursorLockMode.Locked;
+		if (Input.GetKeyDown(KeyCode.Escape)) {
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.visible = true;
+		}
+		if (Input.GetMouseButtonDown(0)) {
+			Cursor.lockState = CursorLockMode.Locked; 
+			Cursor.visible = false;
+		}
 	}
 
     private void xMovement() {
         targetAngle.x += Input.GetAxis("Mouse X")*mouseSensitivity;
-		float posX = 3 * Mathf.Sin(targetAngle.x/360);
-		float posZ = 3 * Mathf.Cos(targetAngle.x/360);
+		float posX = cameraDistance * Mathf.Sin(targetAngle.x/360);
+		float posZ = cameraDistance * Mathf.Cos(targetAngle.x/360);
 
 		//SMOOTH DAMP IS THE BEST WOOOOOO!!!
-		myTrans.localPosition = Vector3.SmoothDamp(myTrans.localPosition,new Vector3(posX,myTrans.localPosition.y,posZ),ref cv,Smoothing);
+		myTrans.localPosition = Vector3.SmoothDamp(myTrans.localPosition,new Vector3(posX,(targetAngle.y/90)+2.7f,posZ),ref cv,Smoothing);
     }
 
 	private void yMovement() {
-        targetAngle.y += Input.GetAxis("Mouse Y") * mouseSensitivity;
+		if( (targetAngle.y/90 <= 2 && Mathf.Sign(Input.GetAxis("Mouse Y")) == -1)  (targetAngle.y/90 >= -1 && Mathf.Sign(Input.GetAxis("Mouse Y")) == -1) ){
+			targetAngle.y -= Input.GetAxis("Mouse Y") * mouseSensitivity;
+		}
     }
 }

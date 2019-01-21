@@ -9,7 +9,7 @@ public class playerMovement : MonoBehaviour {
 	private Transform myTrans;
 
 	public Transform playerModel;
-	
+
 	private bool grounded;
 	private float g;
 
@@ -25,14 +25,14 @@ public class playerMovement : MonoBehaviour {
 		myTrans = GetComponent<Transform>();
 		g = Physics.gravity.y;
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		Move();
 		Drag();
 		Jump(6.5f);
 		Gravity();
-		Rotate();
+		RotateTowardVelocity();
 	}
 
 	void input(float angle) {
@@ -47,28 +47,22 @@ public class playerMovement : MonoBehaviour {
 
 	}
 
-    void Rotate() {
-        //make player model rotate towards direction of travel
-		if(myRigid.velocity.sqrMagnitude > 0.5){
-			movementAngle = Mathf.Atan2(myRigid.velocity.x,myRigid.velocity.z);
-			playerModel.localRotation = Quaternion.Euler(0,movementAngle * Mathf.Rad2Deg,0); //-----------MAKE THIS A SMOOTH TURN-------------
-			print("angle: "+ movementAngle * Mathf.Rad2Deg);	
+	void RotateTowardVelocity() {
+		float yVelocity = 0.0F;
+		//make player model rotate towards direction of travel
+		float notYVel = Mathf.Pow(myRigid.velocity.x,2) + Mathf.Pow(myRigid.velocity.z,2);
+		if( notYVel >= 0.1f){
+			movementAngle = Mathf.Atan2(myRigid.velocity.x,myRigid.velocity.z) * Mathf.Rad2Deg;
+			float smoothAngle = Mathf.SmoothDampAngle(playerModel.localRotation.eulerAngles.y, movementAngle,ref yVelocity, 0.07f);
+			playerModel.localRotation = Quaternion.Euler(0,smoothAngle,0); //-----------MAKE THIS A SMOOTH TURN-------------
+			print("YVel: "+ notYVel);
 		}
-		
-    }
+	}
 
-    void Move() {
+	void Move() {
 		float xMove = playerInput.x*moveAccel;
 		float zMove = playerInput.y*moveAccel;
 		myRigid.AddRelativeForce(xMove,0,zMove,ForceMode.Acceleration);
-
-		//stops the player if travelling slower than
-		if(playerInput.x == 0 && Mathf.Abs(myRigid.velocity.x) < 1 && Mathf.Abs(myRigid.velocity.x) > 0){
-			myRigid.AddRelativeForce(-myRigid.velocity.x,0,0,ForceMode.Impulse);
-		}
-		if(playerInput.y == 0 && Mathf.Abs(myRigid.velocity.z) < 1 && Mathf.Abs(myRigid.velocity.z) > 0){
-			myRigid.AddRelativeForce(0,0,-myRigid.velocity.z,ForceMode.Impulse);
-		}
 	}
 
 	void Drag (){
