@@ -13,6 +13,8 @@ public class playerMovement : MonoBehaviour {
 	private bool grounded;
 	private float g;
 
+	private float horizontalSpeed = 0;
+
 	[SerializeField]
 	private float moveAccel, maxSpeed;
 
@@ -36,7 +38,7 @@ public class playerMovement : MonoBehaviour {
 		Jump(6.5f);
 		Gravity();
 		Rotate();
-		animator.SetFloat("speed",myRigid.velocity.sqrMagnitude);
+		animator.SetFloat("speed",Mathf.Pow(horizontalSpeed,0.5f));
 	}
 
 	void input(float angle) {
@@ -53,9 +55,11 @@ public class playerMovement : MonoBehaviour {
 
     void Rotate() {
         //make player model rotate towards direction of travel
-		if(myRigid.velocity.sqrMagnitude > 0.5){
+		// Debug.Log("V Mag: " + myRigid.velocity.sqrMagnitude);
+		if(myRigid.velocity.sqrMagnitude > 0.5f){
 			movementAngle = Mathf.Atan2(myRigid.velocity.x,myRigid.velocity.z);
-			playerModel.localRotation = Quaternion.Euler(0,movementAngle * Mathf.Rad2Deg,0); //-----------MAKE THIS A SMOOTH TURN-------------
+			Quaternion movementAngleQuart= Quaternion.Euler(0,movementAngle * Mathf.Rad2Deg,0);
+			playerModel.localRotation = Quaternion.Slerp(playerModel.localRotation, movementAngleQuart, Time.deltaTime*10); //-----------MAKE THIS A SMOOTH TURN-------------
 			print("angle: "+ movementAngle * Mathf.Rad2Deg);	
 		}
 		
@@ -65,22 +69,24 @@ public class playerMovement : MonoBehaviour {
 		float xMove = playerInput.x*moveAccel;
 		float zMove = playerInput.y*moveAccel;
 		myRigid.AddRelativeForce(xMove,0,zMove,ForceMode.Acceleration);
-
 		//stops the player if travelling slower than
-		if(playerInput.x == 0 && Mathf.Abs(myRigid.velocity.x) < 1 && Mathf.Abs(myRigid.velocity.x) > 0){
-			myRigid.AddRelativeForce(-myRigid.velocity.x,0,0,ForceMode.Impulse);
-		}
-		if(playerInput.y == 0 && Mathf.Abs(myRigid.velocity.z) < 1 && Mathf.Abs(myRigid.velocity.z) > 0){
-			myRigid.AddRelativeForce(0,0,-myRigid.velocity.z,ForceMode.Impulse);
-		}
+		// if(playerInput.x == 0 && Mathf.Abs(myRigid.velocity.x) < 1 && Mathf.Abs(myRigid.velocity.x) > 0){
+		// 	myRigid.AddRelativeForce(-myRigid.velocity.x,0,0,ForceMode.Impulse);
+		// }
+		// if(playerInput.y == 0 && Mathf.Abs(myRigid.velocity.z) < 1 && Mathf.Abs(myRigid.velocity.z) > 0){
+		// 	myRigid.AddRelativeForce(0,0,-myRigid.velocity.z,ForceMode.Impulse);
+		// }
 	}
 
 	void Drag (){
 		//gets the absolute values (no signs) so it doesnt make the lerping all fucky
 		float xVel = Mathf.Abs(myRigid.velocity.x);
 		float zVel = Mathf.Abs(myRigid.velocity.z);
+		//gets the speed of the character
+		horizontalSpeed = Mathf.Pow(xVel,2)+Mathf.Pow(zVel,2);
+		Debug.Log("horizontal speed: "+horizontalSpeed);
 		//------------------------------------TO DO-----------------------------------------------
-		//gets maxspeed for x and z axis (google "cos sin animation" to remember)
+		//gets maxspeed for x and z axis
 		// float xmaxSpeed = Mathf.Cos(myRigid.velocity.magnitude/myRigid.velocity.z);
 		// float zmaxSpeed = Mathf.Cos(myRigid.velocity.x);
 		//----------------------------------------------------------------------------------------
@@ -109,11 +115,15 @@ public class playerMovement : MonoBehaviour {
 		}
 	}
 
-	void OnTriggerStay() {
-		grounded = true;
+	void OnTriggerStay(Collider col) {
+		if(col.gameObject.tag == "Ground"){
+			grounded = true;
+		}
 	}
 
-	void OnTriggerExit() {
-		grounded = false;
+	void OnTriggerExit(Collider col) {
+		if(col.gameObject.tag == "Ground"){
+			grounded = false;
+		}
 	}
 }
